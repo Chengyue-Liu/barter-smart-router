@@ -5,13 +5,13 @@
 getBestRoute(
 	chainId: number,					// chainId. e.g. Polygon: 137
 	provider: providers.BaseProvider,	// provider
-	protocols: BarterProtocol[],		// swap包含的协议
-	swapAmountHumanReadable: string,	// swap金额，“1” 为swap 1个相应token
-	tokenInAddress: string,				// tokenInAddress: 提供token的地址
+	protocols: BarterProtocol[],		// protocol included
+	swapAmountHumanReadable: string,	// swap amount
+	tokenInAddress: string,				// tokenInAddress: 
 	tokenInDecimal: number,				// tokenInDecimal
-	tokenOutAddress: string,			// tokenOutAddress: 目标token的地址
+	tokenOutAddress: string,			// tokenOutAddress: 
 	tokenOutDecimal: number,			// tokenOutDecimal
-	tradeType: VTradeType,				// EXACT_IN为tokenIn换tokenOut, EXACT为tokenOut换tokenIn
+	tradeType: VTradeType,				// EXACT_IN or EXACT_OUT
 	tokenInSymbol?: string,				// optional
 	tokenInName?: string,				// optional			
 	tokenOutSymbol?: string,			// optional
