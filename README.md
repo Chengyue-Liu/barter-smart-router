@@ -51,8 +51,7 @@ npm install
 npm run build
 ts-node --files src/test-scripts/auto-router.ts
 ``` 
-<br>
-output example: <br>
+output example:
 ```
 UNISWAP-V3 2800000 = USDT -- 0.05% [0x3F5228d0e7D75467366be7De2c31D0d098bA2C23] --> USDC = 2797757.642167)}
 QUICKSWAP 2000000 = USDT -- [0x1659B07B0b4A297e13C01284B36D4494c1A22275] --> WETH -- [0x9806b4FA9821031369AE074d991835F5865d0983] --> USDC = 1611261)}
