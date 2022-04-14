@@ -162,7 +162,6 @@ export function routeToString(
   } else if (route instanceof QuickV2Route) {
     routeStr = quickRouteToString(route);
   } else if (route instanceof PancakeV2Route) {
-    console.log('in------');
     routeStr = pancakeRouteToString(route);
   } else {
     routeStr = uniRouteToString(route);
