@@ -47,7 +47,6 @@ export class PancakeV2PoolProvider implements IV2PoolProvider {
 
     for (let tokenPair of tokenPairs) {
       const [tokenA, tokenB] = tokenPair;
-      console.log(tokenA.symbol, tokenB.symbol);
       const { poolAddress, token0, token1 } = this.getPoolAddress(
         tokenA,
         tokenB

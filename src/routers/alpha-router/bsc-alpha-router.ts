@@ -33,7 +33,10 @@ import {
   IGasPriceProvider,
 } from '../../providers/gas-price-provider';
 import { IV2PoolProvider } from '../../providers/interfaces/IPoolProvider';
-import { IV2SubgraphProvider } from '../../providers/interfaces/ISubgraphProvider';
+import {
+  IV2SubgraphProvider,
+  RawBNBV2SubgraphPool,
+} from '../../providers/interfaces/ISubgraphProvider';
 import { BSCMulticallProvider } from '../../providers/multicall-bsc-provider';
 import { PancakeV2PoolProvider } from '../../providers/pancakeswap/v2/pool-provider';
 import {
@@ -54,6 +57,7 @@ import { CurrencyAmount } from '../../util/amounts';
 import { ChainId, ID_TO_NETWORK_NAME } from '../../util/chains';
 import { log } from '../../util/log';
 import { metric, MetricLoggerUnit } from '../../util/metric';
+import { getBSCPoolsByHttp, getBSCPoolsFromOneProtocol } from '../../util/pool';
 import { BarterProtocol } from '../../util/protocol';
 import {
   IRouter,
@@ -393,6 +397,21 @@ export class BSCAlphaRouter
 
     const protocolsSet = new Set(protocols ?? []);
 
+    const allPoolsUnsanitizedJsonStr = await getBSCPoolsByHttp(
+      protocolsSet,
+      this.chainId
+    );
+
+    let pancakePoolsUnsanitized: RawBNBV2SubgraphPool[] =
+      getBSCPoolsFromOneProtocol(
+        allPoolsUnsanitizedJsonStr,
+        BarterProtocol.PANCAKESWAP
+      );
+
+    if (pancakePoolsUnsanitized === undefined) {
+      console.error('pancake pool not found on server');
+      pancakePoolsUnsanitized = [];
+    }
     if (protocolsSet.has(BarterProtocol.PANCAKESWAP)) {
       quotePromises.push(
         this.getPancakeQuotes(
@@ -403,11 +422,14 @@ export class BSCAlphaRouter
           quoteToken,
           gasPriceWei,
           tradeType,
-          routingConfig
+          routingConfig,
+          pancakePoolsUnsanitized
         )
       );
     }
+    let start = Date.now();
     const routesWithValidQuotesByProtocol = await Promise.all(quotePromises);
+    console.log('wait for quote', Date.now() - start);
     let allRoutesWithValidQuotes: RouteWithValidQuote[] = [];
     let allCandidatePools: CandidatePoolsBySelectionCriteria[] = [];
     for (const {
@@ -468,7 +490,8 @@ export class BSCAlphaRouter
     quoteToken: Token,
     gasPriceWei: BigNumber,
     swapType: TradeType,
-    routingConfig: AlphaRouterConfig
+    routingConfig: AlphaRouterConfig,
+    allPoolsUnsanitized: RawBNBV2SubgraphPool[]
   ): Promise<{
     routesWithValidQuotes: V2RouteWithValidQuote[];
     candidatePools: CandidatePoolsBySelectionCriteria;
@@ -477,6 +500,7 @@ export class BSCAlphaRouter
     // Fetch all the pools that we will consider routing via. There are thousands
     // of pools, so we filter them to a set of candidate pools that we expect will
     // result in good prices.
+    let start = Date.now();
 
     const { poolAccessor, candidatePools } = await getPancakeV2CandidatePools({
       tokenIn,
@@ -486,9 +510,11 @@ export class BSCAlphaRouter
       poolProvider: this.pancakeV2PoolProvider,
       routeType: swapType,
       subgraphProvider: this.pancakeV2SubgraphProvider,
+      allPoolsUnsanitized,
       routingConfig,
       chainId: this.chainId,
     });
+    console.log('get candidate', Date.now() - start);
     const poolsRaw = poolAccessor.getAllPools();
     // Drop any pools that contain tokens that can not be transferred according to the token validator.
     const pools = await this.applyTokenValidatorToPools(
@@ -548,12 +574,14 @@ export class BSCAlphaRouter
       toPancakeCurrencyAmountArr(amounts),
       toPancakeRouteArr(routes)
     );
+    start = Date.now();
     const gasModel = await this.pancakeV2GasModelFactory.buildGasModel(
       this.chainId,
       gasPriceWei,
       this.pancakeV2PoolProvider,
       quoteToken
     );
+    console.log('build gas', Date.now() - start);
 
     metric.putMetric(
       'V2QuotesLoad',

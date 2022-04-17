@@ -2,18 +2,18 @@ import { Interface, LogDescription } from '@ethersproject/abi/lib/interface';
 import { Log, TransactionReceipt } from '@ethersproject/abstract-provider';
 import { ethers } from 'ethers';
 import {
-  USDC_BNB,
-  USDT_BNB,
-} from '../providers/pancakeswap/util/token-provider';
+  DAI_MATIC,
+  USDC_MATIC,
+} from '../providers/quickswap/util/token-provider';
 import { getBestRoute } from '../routers/barter-router';
 import { routeAmountToString } from '../util';
 import { TradeType } from '../util/constants';
 import { BarterProtocol } from '../util/protocol';
 
-const chainId = 56;
-const rpcUrl = 'https://bsc-dataseed1.defibit.io/';
-// const rpcUrl =
-// 'https://polygon-mainnet.infura.io/v3/26b081ad80d646ad97c4a7bdb436a372';
+const chainId = 137;
+// const rpcUrl = 'https://bsc-dataseed1.defibit.io/';
+const rpcUrl =
+  'https://polygon-mainnet.infura.io/v3/26b081ad80d646ad97c4a7bdb436a372';
 const provider = new ethers.providers.JsonRpcProvider(rpcUrl, chainId);
 
 const protocols = [
@@ -23,9 +23,10 @@ const protocols = [
   BarterProtocol.PANCAKESWAP,
 ];
 
-const tokenIn = USDT_BNB;
-const tokenOut = USDC_BNB;
-
+// const tokenIn = USDT_BNB;
+// const tokenOut = USDC_BNB;
+const tokenIn = DAI_MATIC;
+const tokenOut = USDC_MATIC;
 async function main() {
   const start = Date.now();
   const swapRoute = await getBestRoute(

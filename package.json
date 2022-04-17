@@ -70,7 +70,8 @@
     "mnemonist": "^0.38.3",
     "node-cache": "^5.1.2",
     "stats-lite": "^2.2.0",
-    "tslib": "^1.14.1"
+    "tslib": "^1.14.1",
+    "typescript-http-client": "^0.10.4"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",

@@ -12,6 +12,7 @@ import {
 } from '../../../providers/interfaces/IPoolProvider';
 import {
   IV2SubgraphProvider,
+  RawETHV2SubgraphPool,
   V2SubgraphPool,
 } from '../../../providers/interfaces/ISubgraphProvider';
 import {
@@ -45,6 +46,7 @@ import {
 import { ChainId, WRAPPED_NATIVE_CURRENCY } from '../../../util';
 import { log } from '../../../util/log';
 import { metric, MetricLoggerUnit } from '../../../util/metric';
+import { sanitizeETHV2Pools } from '../../../util/pool';
 import { AlphaRouterConfig } from '../alpha-router';
 
 export type PoolId = { id: string };
@@ -69,6 +71,7 @@ export type SushiV2GetCandidatePoolsParams = {
   routeType: TradeType;
   routingConfig: AlphaRouterConfig;
   subgraphProvider: IV2SubgraphProvider;
+  v2PoolsUnsanitized: RawETHV2SubgraphPool[];
   tokenProvider: ITokenProvider;
   poolProvider: IV2PoolProvider;
   blockedTokenListProvider?: ITokenListProvider;
@@ -113,6 +116,7 @@ export async function getSushiV2CandidatePools({
   routeType,
   routingConfig,
   subgraphProvider,
+  v2PoolsUnsanitized,
   tokenProvider,
   poolProvider,
   blockedTokenListProvider,
@@ -136,13 +140,7 @@ export async function getSushiV2CandidatePools({
   const tokenOutAddress = tokenOut.address.toLowerCase();
 
   const beforeSubgraphPools = Date.now();
-  const allPoolsRaw = await subgraphProvider.getPools(
-    uniTokenToSushiToken(tokenIn),
-    uniTokenToSushiToken(tokenOut),
-    {
-      blockNumber,
-    }
-  );
+  const allPoolsRaw = sanitizeETHV2Pools(v2PoolsUnsanitized);
   const allPools = _.map(allPoolsRaw, (pool) => {
     return {
       ...pool,

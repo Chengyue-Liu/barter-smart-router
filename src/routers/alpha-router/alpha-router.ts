@@ -58,7 +58,10 @@ import {
   IGasPriceProvider,
 } from '../../providers/gas-price-provider';
 import { IV2PoolProvider } from '../../providers/interfaces/IPoolProvider';
-import { IV2SubgraphProvider } from '../../providers/interfaces/ISubgraphProvider';
+import {
+  IV2SubgraphProvider,
+  RawETHV2SubgraphPool,
+} from '../../providers/interfaces/ISubgraphProvider';
 import { QuickV2PoolProvider } from '../../providers/quickswap/v2/pool-provider';
 import {
   IQuickV2QuoteProvider,
@@ -93,7 +96,10 @@ import {
   IV3QuoteProvider,
   V3QuoteProvider,
 } from '../../providers/uniswap/v3/quote-provider';
-import { IV3SubgraphProvider } from '../../providers/uniswap/v3/subgraph-provider';
+import {
+  IV3SubgraphProvider,
+  RawV3SubgraphPool,
+} from '../../providers/uniswap/v3/subgraph-provider';
 import { CurrencyAmount } from '../../util/amounts';
 import {
   ChainId,
@@ -103,6 +109,11 @@ import {
 } from '../../util/chains';
 import { log } from '../../util/log';
 import { metric, MetricLoggerUnit } from '../../util/metric';
+import {
+  getETHPoolsByHttp,
+  getETHV2PoolsFromOneProtocol,
+  getETHV3PoolsFromOneProtocol,
+} from '../../util/pool';
 import { BarterProtocol } from '../../util/protocol';
 import { poolToString, routeToString } from '../../util/routes';
 import { UNSUPPORTED_TOKENS } from '../../util/unsupported-tokens';
@@ -889,6 +900,11 @@ export class AlphaRouter
 
     const protocolsSet = new Set(protocols ?? []);
 
+    const allPoolsUnsanitizedJsonStr = await getETHPoolsByHttp(
+      protocolsSet,
+      this.chainId
+    );
+
     const gasModel = await this.v3GasModelFactory.buildGasModel(
       this.chainId,
       gasPriceWei,
@@ -904,6 +920,11 @@ export class AlphaRouter
       V2_SUPPORTED.includes(this.chainId)
     ) {
       log.info({ protocols, tradeType }, 'Routing across all protocols');
+      let v3PoolsUnsanitized: RawV3SubgraphPool[] =
+        getETHV3PoolsFromOneProtocol(
+          allPoolsUnsanitizedJsonStr,
+          BarterProtocol.UNI_V3
+        );
       quotePromises.push(
         this.getV3Quotes(
           tokenIn,
@@ -913,9 +934,15 @@ export class AlphaRouter
           quoteToken,
           gasModel,
           tradeType,
-          routingConfig
+          routingConfig,
+          v3PoolsUnsanitized
         )
       );
+      let v2PoolsUnsanitized: RawETHV2SubgraphPool[] =
+        getETHV2PoolsFromOneProtocol(
+          allPoolsUnsanitizedJsonStr,
+          BarterProtocol.UNI_V2
+        );
       quotePromises.push(
         this.getV2Quotes(
           tokenIn,
@@ -925,7 +952,8 @@ export class AlphaRouter
           quoteToken,
           gasPriceWei,
           tradeType,
-          routingConfig
+          routingConfig,
+          v2PoolsUnsanitized
         )
       );
     } else {
@@ -933,6 +961,11 @@ export class AlphaRouter
         protocolsSet.has(BarterProtocol.UNI_V3) ||
         (protocolsSet.size == 0 && !V2_SUPPORTED.includes(this.chainId))
       ) {
+        let v3PoolsUnsanitized: RawV3SubgraphPool[] =
+          getETHV3PoolsFromOneProtocol(
+            allPoolsUnsanitizedJsonStr,
+            BarterProtocol.UNI_V3
+          );
         log.info({ protocols, swapType: tradeType }, 'Routing across V3');
         quotePromises.push(
           this.getV3Quotes(
@@ -943,12 +976,19 @@ export class AlphaRouter
             quoteToken,
             gasModel,
             tradeType,
-            routingConfig
+            routingConfig,
+            v3PoolsUnsanitized
           )
         );
       }
+
       if (protocolsSet.has(BarterProtocol.UNI_V2)) {
         log.info({ protocols, swapType: tradeType }, 'Routing across V2');
+        let v2PoolsUnsanitized: RawETHV2SubgraphPool[] =
+          getETHV2PoolsFromOneProtocol(
+            allPoolsUnsanitizedJsonStr,
+            BarterProtocol.UNI_V2
+          );
         quotePromises.push(
           this.getV2Quotes(
             tokenIn,
@@ -958,12 +998,18 @@ export class AlphaRouter
             quoteToken,
             gasPriceWei,
             tradeType,
-            routingConfig
+            routingConfig,
+            v2PoolsUnsanitized
           )
         );
       }
     }
     if (protocolsSet.has(BarterProtocol.QUICKSWAP)) {
+      let v2PoolsUnsanitized: RawETHV2SubgraphPool[] =
+        getETHV2PoolsFromOneProtocol(
+          allPoolsUnsanitizedJsonStr,
+          BarterProtocol.QUICKSWAP
+        );
       quotePromises.push(
         this.getQuickQuotes(
           tokenIn,
@@ -973,11 +1019,17 @@ export class AlphaRouter
           quoteToken,
           gasPriceWei,
           tradeType,
-          routingConfig
+          routingConfig,
+          v2PoolsUnsanitized
         )
       );
     }
     if (protocolsSet.has(BarterProtocol.SUSHISWAP)) {
+      let v2PoolsUnsanitized: RawETHV2SubgraphPool[] =
+        getETHV2PoolsFromOneProtocol(
+          allPoolsUnsanitizedJsonStr,
+          BarterProtocol.SUSHISWAP
+        );
       quotePromises.push(
         this.getSushiQuotes(
           tokenIn,
@@ -987,7 +1039,8 @@ export class AlphaRouter
           quoteToken,
           gasPriceWei,
           tradeType,
-          routingConfig
+          routingConfig,
+          v2PoolsUnsanitized
         )
       );
     }
@@ -1128,7 +1181,8 @@ export class AlphaRouter
     quoteToken: Token,
     gasModel: IGasModel<V3RouteWithValidQuote>,
     swapType: TradeType,
-    routingConfig: AlphaRouterConfig
+    routingConfig: AlphaRouterConfig,
+    allPoolsUnsanitized: RawV3SubgraphPool[]
   ): Promise<{
     routesWithValidQuotes: V3RouteWithValidQuote[];
     candidatePools: CandidatePoolsBySelectionCriteria;
@@ -1145,6 +1199,7 @@ export class AlphaRouter
       poolProvider: this.v3PoolProvider,
       routeType: swapType,
       subgraphProvider: this.v3SubgraphProvider,
+      allPoolsUnsanitized,
       routingConfig,
       chainId: this.chainId,
     });
@@ -1284,7 +1339,8 @@ export class AlphaRouter
     quoteToken: Token,
     gasPriceWei: BigNumber,
     swapType: TradeType,
-    routingConfig: AlphaRouterConfig
+    routingConfig: AlphaRouterConfig,
+    v2PoolsUnsanitized: RawETHV2SubgraphPool[]
   ): Promise<{
     routesWithValidQuotes: V2RouteWithValidQuote[];
     candidatePools: CandidatePoolsBySelectionCriteria;
@@ -1301,11 +1357,11 @@ export class AlphaRouter
       poolProvider: this.v2PoolProvider,
       routeType: swapType,
       subgraphProvider: this.v2SubgraphProvider,
+      v2PoolsUnsanitized,
       routingConfig,
       chainId: this.chainId,
     });
     const poolsRaw = poolAccessor.getAllPools();
-
     // Drop any pools that contain tokens that can not be transferred according to the token validator.
     const pools = await this.applyTokenValidatorToPools(
       poolsRaw,
@@ -1428,7 +1484,8 @@ export class AlphaRouter
     quoteToken: Token,
     gasPriceWei: BigNumber,
     swapType: TradeType,
-    routingConfig: AlphaRouterConfig
+    routingConfig: AlphaRouterConfig,
+    v2PoolsUnsanitized: RawETHV2SubgraphPool[]
   ): Promise<{
     routesWithValidQuotes: V2RouteWithValidQuote[];
     candidatePools: CandidatePoolsBySelectionCriteria;
@@ -1445,6 +1502,7 @@ export class AlphaRouter
       poolProvider: this.quickV2PoolProvider,
       routeType: swapType,
       subgraphProvider: this.quickV2SubgraphProvider,
+      v2PoolsUnsanitized,
       routingConfig,
       chainId: this.chainId,
     });
@@ -1575,7 +1633,8 @@ export class AlphaRouter
     quoteToken: Token,
     gasPriceWei: BigNumber,
     swapType: TradeType,
-    routingConfig: AlphaRouterConfig
+    routingConfig: AlphaRouterConfig,
+    v2PoolsUnsanitized: RawETHV2SubgraphPool[]
   ): Promise<{
     routesWithValidQuotes: V2RouteWithValidQuote[];
     candidatePools: CandidatePoolsBySelectionCriteria;
@@ -1592,6 +1651,7 @@ export class AlphaRouter
       poolProvider: this.sushiV2PoolProvider,
       routeType: swapType,
       subgraphProvider: this.sushiV2SubgraphProvider,
+      v2PoolsUnsanitized,
       routingConfig,
       chainId: this.chainId,
     });
