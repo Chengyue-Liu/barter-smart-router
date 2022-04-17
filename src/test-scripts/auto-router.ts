@@ -1,10 +1,11 @@
 import { Interface, LogDescription } from '@ethersproject/abi/lib/interface';
 import { Log, TransactionReceipt } from '@ethersproject/abstract-provider';
-import { ethers } from 'ethers';
+import { BigNumber, ethers, Signer } from 'ethers';
 import {
   DAI_MATIC,
   USDC_MATIC,
 } from '../providers/quickswap/util/token-provider';
+import { SwapRoute } from '../routers';
 import { getBestRoute } from '../routers/barter-router';
 import { routeAmountToString } from '../util';
 import { TradeType } from '../util/constants';
@@ -56,6 +57,25 @@ async function main() {
   }
   console.log('total get: ', sum);
   console.log('time: ', Date.now() - start);
+}
+
+export async function assembleSwapRequest(
+  swapRoute: SwapRoute,
+  signer: Signer,
+  tokenInAddr: string,
+  tokenOutAddr: string,
+  amount: string,
+  to: string,
+  dealdline: BigNumber
+) {
+  let amountInArr: BigNumber[] = [];
+  let amountOutMinArr: BigNumber[] = [];
+  let pathArr = [];
+  let routerArray: string[] = [];
+
+  for (let route of swapRoute.route) {
+    console.log(route);
+  }
 }
 
 main().catch((error) => {
