@@ -16,7 +16,6 @@ import JSBI from 'jsbi';
 import _ from 'lodash';
 import NodeCache from 'node-cache';
 import { V3HeuristicGasModelFactory } from '.';
-import { Platform } from '../../adapter/platform';
 import {
   quickToUniCurrencyAmount,
   toQuickCurrencyAmountArr,
@@ -1321,7 +1320,7 @@ export class AlphaRouter
           quoteToken,
           tradeType: swapType,
           v3PoolProvider: this.v3PoolProvider,
-          platform: Platform.UNISWAP_V3,
+          platform: BarterProtocol.UNI_V3,
         });
 
         routesWithValidQuotes.push(routeWithValidQuote);
@@ -1466,7 +1465,7 @@ export class AlphaRouter
           quoteToken,
           tradeType: swapType,
           v2PoolProvider: this.v2PoolProvider,
-          platform: Platform.UNISWAP_V2,
+          platform: BarterProtocol.UNI_V2,
         });
 
         routesWithValidQuotes.push(routeWithValidQuote);
@@ -1617,7 +1616,7 @@ export class AlphaRouter
           quoteToken,
           tradeType: swapType,
           v2PoolProvider: this.quickV2PoolProvider,
-          platform: Platform.QUICKSWAP,
+          platform: BarterProtocol.QUICKSWAP,
         });
         routesWithValidQuotes.push(routeWithValidQuote);
       }
@@ -1765,7 +1764,7 @@ export class AlphaRouter
           quoteToken,
           tradeType: swapType,
           v2PoolProvider: this.sushiV2PoolProvider,
-          platform: Platform.SUSHISWAP,
+          platform: BarterProtocol.SUSHISWAP,
         });
 
         routesWithValidQuotes.push(routeWithValidQuote);

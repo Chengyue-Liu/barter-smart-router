@@ -14,7 +14,6 @@ import {
   toPancakeRouteArr,
   toUniPairArr,
 } from '../../adapter/pancake-adapter';
-import { Platform } from '../../adapter/platform';
 import {
   CachingGasStationProvider,
   CachingTokenProviderWithFallback,
@@ -627,7 +626,7 @@ export class BSCAlphaRouter
           quoteToken,
           tradeType: swapType,
           v2PoolProvider: this.pancakeV2PoolProvider,
-          platform: Platform.PANCAKESWAP,
+          platform: BarterProtocol.PANCAKESWAP,
         });
         routesWithValidQuotes.push(routeWithValidQuote);
       }

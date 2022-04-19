@@ -53,7 +53,7 @@ import { ChainId, WRAPPED_NATIVE_CURRENCY } from '../../../util';
 import { parseFeeAmount, unparseFeeAmount } from '../../../util/amounts';
 import { log } from '../../../util/log';
 import { metric, MetricLoggerUnit } from '../../../util/metric';
-import { sanitizeETHV2Pools, sanitizeV3Pools } from '../../../util/pool';
+import { sanitizeETHV2Pools } from '../../../util/pool';
 import { AlphaRouterConfig } from '../alpha-router';
 
 export type PoolId = { id: string };
@@ -186,7 +186,10 @@ export async function getV3CandidatePools({
 
   const beforeSubgraphPools = Date.now();
 
-  const allPoolsRaw = sanitizeV3Pools(allPoolsUnsanitized);
+  // const allPoolsRaw = sanitizeV3Pools(allPoolsUnsanitized);
+  const allPoolsRaw = await subgraphProvider.getPools(tokenIn, tokenOut, {
+    blockNumber,
+  });
 
   log.info(
     { samplePools: allPoolsRaw.slice(0, 3) },

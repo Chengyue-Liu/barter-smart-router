@@ -1,6 +1,7 @@
 import { Token } from '@uniswap/sdk-core';
 import { FACTORY_ADDRESS } from '@uniswap/v3-sdk';
 import { ChainId } from './chains';
+import { BarterProtocol } from './protocol';
 
 export const V3_CORE_FACTORY_ADDRESS = FACTORY_ADDRESS;
 export const QUOTER_V2_ADDRESS = '0x61fFE014bA17989E743c5F6cB21bF9697530B21e';
@@ -20,6 +21,15 @@ export const BSC_MULTICALL_ADDRESS =
 
 export const MULTICALL2_ADDRESS = '0x5BA1e12693Dc8F9c48aAD8770482f4739bEeD696';
 
+export const ROUTER_ADDRESSES: {
+  [protocol in BarterProtocol]: string;
+} = {
+  V2: '0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D',
+  V3: '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45',
+  QUICKSWAP: '0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff',
+  SUSHISWAP: '0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506',
+  PANCAKESWAP: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
+};
 export const WETH9: {
   [chainId in Exclude<
     ChainId,

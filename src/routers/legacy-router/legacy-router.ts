@@ -3,7 +3,6 @@ import { Currency, Token, TradeType } from '@uniswap/sdk-core';
 import { FeeAmount, MethodParameters, Pool, Route } from '@uniswap/v3-sdk';
 import { BigNumber, logger } from 'ethers';
 import _ from 'lodash';
-import { Platform } from '../../adapter/platform';
 import { IMulticallProvider } from '../../providers/multicall-provider';
 import {
   DAI_MAINNET,
@@ -18,6 +17,7 @@ import {
 import { CurrencyAmount } from '../../util/amounts';
 import { ChainId } from '../../util/chains';
 import { log } from '../../util/log';
+import { BarterProtocol } from '../../util/protocol';
 import { routeToString } from '../../util/routes';
 import { V3RouteWithValidQuote } from '../alpha-router';
 import { IRouter, SwapOptions, SwapRoute, V3Route } from '../router';
@@ -305,7 +305,7 @@ export class LegacyRouter implements IRouter<LegacyRoutingConfig> {
         tradeType: routeType,
         quoteToken,
         v3PoolProvider: this.poolProvider,
-        platform: Platform.UNISWAP_V3,
+        platform: BarterProtocol.UNI_V3,
       });
     });
 
