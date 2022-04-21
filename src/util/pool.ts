@@ -1,3 +1,4 @@
+import axios from 'axios';
 import {
   RawBNBV2SubgraphPool,
   RawETHV2SubgraphPool,
@@ -8,11 +9,10 @@ import {
   V3SubgraphPool,
 } from '../providers/uniswap/v3/subgraph-provider';
 import { BarterProtocol } from './protocol';
+import { BARTER_SERVER_URL } from './urls';
 
 const bscThreshold = 0.25;
 const ethThreshold = 0.025;
-
-const barterServerUrl = '';
 
 export function sanitizeBSCPools(
   pools: RawBNBV2SubgraphPool[]
@@ -99,20 +99,34 @@ export async function getETHPoolsByHttp(
   protocolSet: Set<BarterProtocol>,
   chainId: number
 ): Promise<string> {
-  const request = assemblePoolRequest(protocolSet, chainId);
-  const allPoolsUnsanitizedJsonStr =
-    '{"uniswap_v2":[{"id":"0x00004ee988665cdda9a1080d5792cecd16dc1220","reserveETH":0.06180964849520753,"token0":{"id":"0x4d44d6c288b7f32ff676a4b2dafd625992f8ffbd","symbol":"SLC"},"token1":{"id":"0xdac17f958d2ee523a2206206994597c13d831ec7","symbol":"USDT"},"totalSupply":8.959536207295e-5,"trackedReserveETH":0.06180964849520753},{"id":"0x0000871c95bb027c90089f4926fd1ba82cdd9a8b","reserveETH":2.82e-16,"token0":{"id":"0x5152e1cb69a2ffa3997e89cbb4aba76a01d82141","symbol":"HORE"},"token1":{"id":"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2","symbol":"WETH"},"totalSupply":0,"trackedReserveETH":2.82e-16}],"uniswap_v3":[], "quickswap":[], "sushiswap":[]}';
-  return allPoolsUnsanitizedJsonStr;
+  const requestUrl = assemblePoolRequest(protocolSet, chainId);
+  try {
+    const allPoolsUnsanitizedJsonStr = await axios.get(requestUrl);
+    return JSON.stringify(allPoolsUnsanitizedJsonStr.data);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error();
+    } else {
+      throw new Error();
+    }
+  }
 }
 
 export async function getBSCPoolsByHttp(
   protocolSet: Set<BarterProtocol>,
   chainId: number
 ): Promise<string> {
-  const request = assemblePoolRequest(protocolSet, chainId);
-  const allPoolsUnsanitizedJsonStr =
-    '{"pancakeswap":[{"id":"0x00004ee988665cdda9a1080d5792cecd16dc1220","reserveBNB":0.06180964849520753,"token0":{"id":"0x4d44d6c288b7f32ff676a4b2dafd625992f8ffbd","symbol":"SLC"},"token1":{"id":"0xdac17f958d2ee523a2206206994597c13d831ec7","symbol":"USDT"},"totalSupply":8.959536207295e-5,"trackedReserveBNB":0.06180964849520753},{"id":"0x0000871c95bb027c90089f4926fd1ba82cdd9a8b","reserveBNB":2.82e-16,"token0":{"id":"0x5152e1cb69a2ffa3997e89cbb4aba76a01d82141","symbol":"HORE"},"token1":{"id":"0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2","symbol":"WETH"},"totalSupply":0,"trackedReserveBNB":2.82e-16}]}';
-  return allPoolsUnsanitizedJsonStr;
+  const requestUrl = assemblePoolRequest(protocolSet, chainId);
+  try {
+    const allPoolsUnsanitizedJsonStr = await axios.get(requestUrl);
+    return JSON.stringify(allPoolsUnsanitizedJsonStr.data);
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error();
+    } else {
+      throw new Error();
+    }
+  }
 }
 
 export function getBSCPoolsFromOneProtocol(
@@ -161,19 +175,19 @@ function assemblePoolRequest(
   protocolSet: Set<BarterProtocol>,
   chainId: number
 ): string {
-  let request = barterServerUrl;
+  let request = BARTER_SERVER_URL;
   let protocolArr = [];
   for (let protocol of protocolSet) {
     if (protocol === BarterProtocol.UNI_V2) {
-      protocolArr.push('uniswap_v2');
+      protocolArr.push('uniswap-v2');
     } else if (protocol === BarterProtocol.UNI_V3) {
-      protocolArr.push('uniswap_v3');
+      protocolArr.push('uniswap-v3');
     } else {
       protocolArr.push(protocol.toLowerCase());
     }
   }
   const protocolParam = protocolArr.join(',');
-  request += 'getPair?protocols=' + protocolParam;
+  request += '/get-pools?protocol=' + protocolParam;
   request += '&&chainId=' + chainId;
   return request;
 }

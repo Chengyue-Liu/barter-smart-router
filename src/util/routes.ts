@@ -1,8 +1,11 @@
-import { Pair as QPair } from '@davidwgrossman/quickswap-sdk';
-import { Pair as PPair } from '@pancakeswap/sdk';
+import {
+  Pair as QPair,
+  Route as QuickV2RouteRaw,
+} from '@davidwgrossman/quickswap-sdk';
+import { Pair as PPair, Route as PancakeV2RouteRaw } from '@pancakeswap/sdk';
 import { Percent } from '@uniswap/sdk-core';
-import { Pair } from '@uniswap/v2-sdk';
-import { Pool } from '@uniswap/v3-sdk';
+import { Pair, Route as V2RouteRaw } from '@uniswap/v2-sdk';
+import { Pool, Route as V3RouteRaw } from '@uniswap/v3-sdk';
 import _ from 'lodash';
 import { platform } from 'os';
 import { CurrencyAmount } from '.';
@@ -157,11 +160,11 @@ export function routeToString(
   route: V2Route | V3Route | SushiV2Route | QuickV2Route | PancakeV2Route
 ): string {
   let routeStr = 'route type not found';
-  if (route instanceof V2Route || route instanceof V3Route) {
+  if (route instanceof V2RouteRaw || route instanceof V3RouteRaw) {
     routeStr = uniRouteToString(route);
-  } else if (route instanceof QuickV2Route) {
+  } else if (route instanceof QuickV2RouteRaw) {
     routeStr = quickRouteToString(route);
-  } else if (route instanceof PancakeV2Route) {
+  } else if (route instanceof PancakeV2RouteRaw) {
     routeStr = pancakeRouteToString(route);
   } else {
     routeStr = uniRouteToString(route);

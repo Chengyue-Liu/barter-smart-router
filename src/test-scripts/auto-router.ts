@@ -3,13 +3,15 @@ import { Log, TransactionReceipt } from '@ethersproject/abstract-provider';
 import { Protocol } from '@uniswap/router-sdk';
 import { Pool } from '@uniswap/v3-sdk';
 import { BigNumber, ethers } from 'ethers';
-import { USDT_MATIC } from '../providers/quickswap/util/token-provider';
+import {
+  USDC_MATIC,
+  USDT_MATIC,
+} from '../providers/quickswap/util/token-provider';
 import { SwapRoute } from '../routers';
 import { getBestRoute } from '../routers/barter-router';
 import { routeAmountToString, ROUTER_ADDRESSES } from '../util';
 import { TradeType } from '../util/constants';
 import { BarterProtocol } from '../util/protocol';
-import { Token } from '../util/token';
 
 const chainId = 137;
 // const rpcUrl = 'https://bsc-dataseed1.defibit.io/';
@@ -30,23 +32,17 @@ const routerContract = new ethers.Contract(
 );
 const slippage = 3; // thousandth
 const protocols = [
-  // BarterProtocol.UNI_V2,
+  BarterProtocol.UNI_V2,
   BarterProtocol.UNI_V3,
-  // BarterProtocol.QUICKSWAP,
+  BarterProtocol.QUICKSWAP,
+  BarterProtocol.SUSHISWAP,
   // BarterProtocol.PANCAKESWAP,
 ];
 
-const CRV_MATIC = new Token(
-  137,
-  '0x172370d5Cd63279eFa6d502DAB29171933a610AF',
-  18,
-  'CRV',
-  'Curve'
-);
 // const tokenIn = USDT_BNB;
 // const tokenOut = USDC_BNB;
 const tokenIn = USDT_MATIC;
-const tokenOut = CRV_MATIC;
+const tokenOut = USDC_MATIC;
 const abiCoder = new ethers.utils.AbiCoder();
 
 async function main() {
@@ -55,7 +51,7 @@ async function main() {
     chainId,
     provider,
     protocols,
-    '1',
+    '80000000',
     tokenIn.address,
     tokenIn.decimals,
     tokenOut.address,
@@ -99,7 +95,11 @@ async function doSwap(swapRoute: SwapRoute): Promise<TransactionReceipt> {
 
   return swapTx.wait();
 }
-
+/**
+ * assemble swap request to call barterRouter's multiSwap method.
+ * @param swapRoute route from router.route()
+ * @returns TBD
+ */
 export function assembleSwapRequest(swapRoute: SwapRoute) {
   let amountInArr: BigNumber[] = [];
   let amountOutMinArr: BigNumber[] = [];
