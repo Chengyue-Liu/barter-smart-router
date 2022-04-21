@@ -1,26 +1,22 @@
 import { Log, TransactionReceipt } from '@ethersproject/abstract-provider';
-import '@nomiclabs/hardhat-ethers';
 import { ethers } from 'ethers';
 import { Interface } from 'ethers/lib/utils';
-const provider = new ethers.providers.JsonRpcProvider(secret.rpc);
-const failedTxhash =
-  '0x5c3eb07b7087a4a75d76c1589f4202b8c637e7b23c375c4ba6999a57f0ff4618';
+import jsonAbi from './abi.json';
+const chainId = 137;
+// const rpcUrl = 'https://bsc-dataseed1.defibit.io/';
+const rpcUrl =
+  'https://polygon-mainnet.infura.io/v3/26b081ad80d646ad97c4a7bdb436a372';
+const provider = new ethers.providers.JsonRpcProvider(rpcUrl, chainId);
 const successTxHash =
-  '0x70b033aa413be8d2ee340f9dbe90a96acfb23491a2c3f9343db280f4edfab6fe';
+  '0x214408f08c610503236691df3314e2837333e2902432f58ca8135f45c56a5f45';
 
 async function main() {
-  // check if transaction successed
-  let [success, reason] = await getRevertReason(provider, successTxHash);
-  if (success) {
-    console.log('successful transaction');
-  } else {
-    console.log('transaction failed, revert reason: ' + reason);
-  }
-
-  console.log(
-    'transaction logs: ',
-    await parseEventFromTx(successTxHash, [jsonAbi])
-  );
+  console.log(await showHumanReadableAbi(jsonAbi));
+  //   console.log(await parseEventFromTx(successTxHash, [jsonAbi]));
+}
+export async function showHumanReadableAbi(jsonAbi: any) {
+  const iface = new ethers.utils.Interface(jsonAbi);
+  console.log(iface.format(ethers.utils.FormatTypes.full));
 }
 
 export async function parseEventFromTx(

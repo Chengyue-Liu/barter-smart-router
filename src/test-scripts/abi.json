@@ -1,0 +1,266 @@
+[
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_feeToAdmin",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "fromadddre",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "toaddre",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "uses",
+				"type": "address"
+			},
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "router",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amountIn",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amountOut",
+						"type": "uint256"
+					}
+				],
+				"indexed": false,
+				"internalType": "struct VeniceswapRouterV1.swaps[]",
+				"name": "swapto",
+				"type": "tuple[]"
+			}
+		],
+		"name": "swap",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "feeTo",
+		"outputs": [
+			{
+				"internalType": "address payable",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "feeToAdmin",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "fees",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "amountInArr",
+				"type": "uint256[]"
+			}
+		],
+		"name": "getAmountInArr",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_routerArr",
+				"type": "address"
+			}
+		],
+		"name": "getFactory",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "Factory",
+				"type": "address"
+			}
+		],
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_routerArr",
+				"type": "address"
+			}
+		],
+		"name": "getWETH",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "WETH",
+				"type": "address"
+			}
+		],
+		"stateMutability": "pure",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "amountInArr",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "amountOuntMinArr",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "bytes[]",
+				"name": "pathArr",
+				"type": "bytes[]"
+			},
+			{
+				"internalType": "address[]",
+				"name": "routerArr",
+				"type": "address[]"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "deadline",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "froms",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "tos",
+				"type": "address"
+			}
+		],
+		"name": "multiSwap",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address payable",
+				"name": "_feeTo",
+				"type": "address"
+			}
+		],
+		"name": "setFeeTo",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_feetoAdmin",
+				"type": "address"
+			}
+		],
+		"name": "setFeeToSetter",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_fees",
+				"type": "uint256"
+			}
+		],
+		"name": "setFees",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
+	}
+]

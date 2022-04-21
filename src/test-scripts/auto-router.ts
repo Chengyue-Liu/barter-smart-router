@@ -1,5 +1,4 @@
-import { Interface, LogDescription } from '@ethersproject/abi/lib/interface';
-import { Log, TransactionReceipt } from '@ethersproject/abstract-provider';
+import { TransactionReceipt } from '@ethersproject/abstract-provider';
 import { Protocol } from '@uniswap/router-sdk';
 import { Pool } from '@uniswap/v3-sdk';
 import { BigNumber, ethers } from 'ethers';
@@ -157,30 +156,3 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
-
-function parseEventFromTxReceipt(
-  receipt: TransactionReceipt,
-  jsonAbiArray: Array<any>
-): LogDescription[] {
-  let parsedLogs: LogDescription[] = new Array();
-  // console.log(receipt.logs)
-  let logs: Log[] = receipt.logs;
-  let fullSignatures = new Array<string>();
-  for (let jsonAbi of jsonAbiArray) {
-    let iface = new Interface(jsonAbi);
-    let signatures = iface.format(
-      ethers.utils.FormatTypes.full
-    ) as Array<string>;
-    fullSignatures = fullSignatures.concat(signatures);
-  }
-  let iface = new Interface(fullSignatures);
-  for (let log of logs) {
-    try {
-      let parsedLog = iface.parseLog(log);
-      parsedLogs.push(parsedLog);
-    } catch (err) {
-      console.log(err);
-    }
-  }
-  return parsedLogs;
-}
