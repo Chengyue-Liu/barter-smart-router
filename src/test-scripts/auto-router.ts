@@ -78,7 +78,7 @@ async function main() {
   }
   console.log('total get: ', sum);
   console.log('time: ', Date.now() - start);
-  console.log(await doSwap(swapRoute));
+  // console.log(await doSwap(swapRoute));
 }
 
 async function doSwap(swapRoute: SwapRoute): Promise<TransactionReceipt> {
