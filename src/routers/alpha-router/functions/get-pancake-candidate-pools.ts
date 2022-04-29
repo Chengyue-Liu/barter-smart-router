@@ -8,7 +8,6 @@ import {
   V2PoolAccessor,
 } from '../../../providers/interfaces/IPoolProvider';
 import {
-  IV2SubgraphProvider,
   RawBNBV2SubgraphPool,
   V2SubgraphPool,
 } from '../../../providers/interfaces/ISubgraphProvider';
@@ -46,7 +45,6 @@ export type PancakeV2GetCandidatePoolsParams = {
   tokenOut: Token;
   routeType: TradeType;
   routingConfig: AlphaRouterConfig;
-  subgraphProvider: IV2SubgraphProvider;
   allPoolsUnsanitized: RawBNBV2SubgraphPool[];
   tokenProvider: ITokenProvider;
   poolProvider: IV2PoolProvider;
@@ -62,7 +60,6 @@ export async function getPancakeV2CandidatePools({
   tokenOut,
   routeType,
   routingConfig,
-  subgraphProvider,
   allPoolsUnsanitized,
   tokenProvider,
   poolProvider,

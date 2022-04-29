@@ -8,7 +8,6 @@ import {
   V2PoolAccessor,
 } from '../../../providers/interfaces/IPoolProvider';
 import {
-  IV2SubgraphProvider,
   RawETHV2SubgraphPool,
   V2SubgraphPool,
 } from '../../../providers/interfaces/ISubgraphProvider';
@@ -18,6 +17,7 @@ import {
   DAI_MAINNET,
   DAI_OPTIMISM,
   DAI_OPTIMISTIC_KOVAN,
+  DAI_POLYGON,
   DAI_POLYGON_MUMBAI,
   DAI_RINKEBY_1,
   DAI_RINKEBY_2,
@@ -45,7 +45,6 @@ import {
   V3PoolAccessor,
 } from '../../../providers/uniswap/v3/pool-provider';
 import {
-  IV3SubgraphProvider,
   RawV3SubgraphPool,
   V3SubgraphPool,
 } from '../../../providers/uniswap/v3/subgraph-provider';
@@ -77,7 +76,6 @@ export type V3GetCandidatePoolsParams = {
   tokenOut: Token;
   routeType: TradeType;
   routingConfig: AlphaRouterConfig;
-  subgraphProvider: IV3SubgraphProvider;
   allPoolsUnsanitized: RawV3SubgraphPool[];
   tokenProvider: ITokenProvider;
   poolProvider: IV3PoolProvider;
@@ -90,32 +88,7 @@ export type V2GetCandidatePoolsParams = {
   tokenOut: Token;
   routeType: TradeType;
   routingConfig: AlphaRouterConfig;
-  subgraphProvider: IV2SubgraphProvider;
   v2PoolsUnsanitized: RawETHV2SubgraphPool[];
-  tokenProvider: ITokenProvider;
-  poolProvider: IV2PoolProvider;
-  blockedTokenListProvider?: ITokenListProvider;
-  chainId: ChainId;
-};
-
-export type QuickV2GetCandidatePoolsParams = {
-  tokenIn: Token;
-  tokenOut: Token;
-  routeType: TradeType;
-  routingConfig: AlphaRouterConfig;
-  subgraphProvider: IV2SubgraphProvider;
-  tokenProvider: ITokenProvider;
-  poolProvider: IV2PoolProvider;
-  blockedTokenListProvider?: ITokenListProvider;
-  chainId: ChainId;
-};
-
-export type SushiV2GetCandidatePoolsParams = {
-  tokenIn: Token;
-  tokenOut: Token;
-  routeType: TradeType;
-  routingConfig: AlphaRouterConfig;
-  subgraphProvider: IV2SubgraphProvider;
   tokenProvider: ITokenProvider;
   poolProvider: IV2PoolProvider;
   blockedTokenListProvider?: ITokenListProvider;
@@ -151,7 +124,7 @@ const baseTokensByChain: { [chainId in ChainId]?: Token[] } = {
     USDT_ARBITRUM,
   ],
   [ChainId.ARBITRUM_RINKEBY]: [DAI_ARBITRUM_RINKEBY, USDT_ARBITRUM_RINKEBY],
-  [ChainId.POLYGON]: [USDC_POLYGON, WMATIC_POLYGON],
+  [ChainId.POLYGON]: [USDC_POLYGON, WMATIC_POLYGON, DAI_POLYGON],
   [ChainId.POLYGON_MUMBAI]: [DAI_POLYGON_MUMBAI, WMATIC_POLYGON_MUMBAI],
 };
 
@@ -160,7 +133,6 @@ export async function getV3CandidatePools({
   tokenOut,
   routeType,
   routingConfig,
-  subgraphProvider,
   allPoolsUnsanitized,
   tokenProvider,
   poolProvider,
@@ -577,7 +549,6 @@ export async function getV2CandidatePools({
   tokenOut,
   routeType,
   routingConfig,
-  subgraphProvider,
   v2PoolsUnsanitized,
   tokenProvider,
   poolProvider,

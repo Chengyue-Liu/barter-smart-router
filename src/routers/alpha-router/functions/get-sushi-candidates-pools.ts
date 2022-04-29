@@ -11,7 +11,6 @@ import {
   V2PoolAccessor,
 } from '../../../providers/interfaces/IPoolProvider';
 import {
-  IV2SubgraphProvider,
   RawETHV2SubgraphPool,
   V2SubgraphPool,
 } from '../../../providers/interfaces/ISubgraphProvider';
@@ -70,7 +69,6 @@ export type SushiV2GetCandidatePoolsParams = {
   tokenOut: Token;
   routeType: TradeType;
   routingConfig: AlphaRouterConfig;
-  subgraphProvider: IV2SubgraphProvider;
   v2PoolsUnsanitized: RawETHV2SubgraphPool[];
   tokenProvider: ITokenProvider;
   poolProvider: IV2PoolProvider;
@@ -115,7 +113,6 @@ export async function getSushiV2CandidatePools({
   tokenOut,
   routeType,
   routingConfig,
-  subgraphProvider,
   v2PoolsUnsanitized,
   tokenProvider,
   poolProvider,

@@ -112,7 +112,7 @@ export async function getETHPoolsByHttp(
   }
 }
 
-export async function getBSCPoolsByHttp(
+export async function getBSCPoolsFromServer(
   protocolSet: Set<BarterProtocol>,
   chainId: number
 ): Promise<string> {
