@@ -8,7 +8,7 @@ import {
   V2PoolAccessor,
 } from '../../../providers/interfaces/IPoolProvider';
 import {
-  IV2SubgraphProvider,
+  RawBNBV2SubgraphPool,
   V2SubgraphPool,
 } from '../../../providers/interfaces/ISubgraphProvider';
 import {
@@ -20,6 +20,7 @@ import {
 import { ChainId, WRAPPED_NATIVE_CURRENCY } from '../../../util';
 import { log } from '../../../util/log';
 import { metric, MetricLoggerUnit } from '../../../util/metric';
+import { sanitizeBSCPools } from '../../../util/pool';
 import { Token } from '../../../util/token';
 import { AlphaRouterConfig } from '../alpha-router';
 
@@ -44,7 +45,7 @@ export type PancakeV2GetCandidatePoolsParams = {
   tokenOut: Token;
   routeType: TradeType;
   routingConfig: AlphaRouterConfig;
-  subgraphProvider: IV2SubgraphProvider;
+  allPoolsUnsanitized: RawBNBV2SubgraphPool[];
   tokenProvider: ITokenProvider;
   poolProvider: IV2PoolProvider;
   blockedTokenListProvider?: ITokenListProvider;
@@ -59,7 +60,7 @@ export async function getPancakeV2CandidatePools({
   tokenOut,
   routeType,
   routingConfig,
-  subgraphProvider,
+  allPoolsUnsanitized,
   tokenProvider,
   poolProvider,
   blockedTokenListProvider,
@@ -83,9 +84,7 @@ export async function getPancakeV2CandidatePools({
   const tokenOutAddress = tokenOut.address.toLowerCase();
 
   const beforeSubgraphPools = Date.now();
-  const allPoolsRaw = await subgraphProvider.getPools(tokenIn, tokenOut, {
-    blockNumber,
-  });
+  const allPoolsRaw = sanitizeBSCPools(allPoolsUnsanitized);
   const allPools = _.map(allPoolsRaw, (pool) => {
     return {
       ...pool,
@@ -396,7 +395,6 @@ export async function getPancakeV2CandidatePools({
   const poolAccessor = await poolProvider.getPools(tokenPairs, {
     blockNumber,
   });
-
   metric.putMetric(
     'V2PoolsLoad',
     Date.now() - beforePoolsLoad,

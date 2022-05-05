@@ -56,7 +56,13 @@ export const USDC_MATIC = new Token(
   'USDC',
   'USD//C'
 );
-
+export const USDT_MATIC = new Token(
+  ChainId.MATIC,
+  '0xc2132D05D31c914a87C6611C10748AEb04B58e8F',
+  6,
+  'USDT',
+  'Tether'
+);
 export const DAI_MATIC = new Token(
   ChainId.MATIC,
   '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063',

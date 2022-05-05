@@ -18,6 +18,7 @@ import { SushiV2PoolProvider } from '../../../providers/sushiswap/v2/pool-provid
 import { V2PoolProvider } from '../../../providers/uniswap/v2/pool-provider';
 import { IV3PoolProvider } from '../../../providers/uniswap/v3/pool-provider';
 import { CurrencyAmount } from '../../../util/amounts';
+import { BarterProtocol } from '../../../util/protocol';
 import { routeToString } from '../../../util/routes';
 import {
   PancakeV2Route,
@@ -76,7 +77,7 @@ export type V2RouteWithValidQuoteParams = {
   quoteToken: Token;
   tradeType: TradeType;
   v2PoolProvider: IV2PoolProvider;
-  platform: string;
+  platform: BarterProtocol;
 };
 /**
  * Represents a quote for swapping on a V2 only route. Contains all information
@@ -103,7 +104,7 @@ export class V2RouteWithValidQuote implements IV2RouteWithValidQuote {
   public tradeType: TradeType;
   public poolAddresses: string[];
   public tokenPath: Token[] | QToken[] | PToken[];
-  public platform: string;
+  public platform: BarterProtocol;
   public toString(): string {
     return `${this.platform}: ${this.percent.toFixed(
       2
@@ -209,7 +210,7 @@ export type V3RouteWithValidQuoteParams = {
   quoteToken: Token;
   tradeType: TradeType;
   v3PoolProvider: IV3PoolProvider;
-  platform: string;
+  platform: BarterProtocol;
 };
 
 /**
@@ -239,7 +240,7 @@ export class V3RouteWithValidQuote implements IV3RouteWithValidQuote {
   public tradeType: TradeType;
   public poolAddresses: string[];
   public tokenPath: Token[];
-  public platform: string;
+  public platform: BarterProtocol;
 
   public toString(): string {
     return `${this.percent.toFixed(

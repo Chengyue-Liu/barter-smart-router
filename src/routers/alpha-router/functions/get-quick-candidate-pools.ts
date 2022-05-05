@@ -1,15 +1,8 @@
 import { Protocol } from '@uniswap/router-sdk';
 import { Token, TradeType } from '@uniswap/sdk-core';
 import _ from 'lodash';
-import { ITokenListProvider } from '../../../providers';
-import {
-  IV2PoolProvider,
-  V2PoolAccessor,
-} from '../../../providers/interfaces/IPoolProvider';
-import {
-  IV2SubgraphProvider,
-  V2SubgraphPool,
-} from '../../../providers/interfaces/ISubgraphProvider';
+import { V2PoolAccessor } from '../../../providers/interfaces/IPoolProvider';
+import { V2SubgraphPool } from '../../../providers/interfaces/ISubgraphProvider';
 import {
   DAI_ARBITRUM,
   DAI_ARBITRUM_RINKEBY,
@@ -20,7 +13,6 @@ import {
   DAI_RINKEBY_1,
   DAI_RINKEBY_2,
   FEI_MAINNET,
-  ITokenProvider,
   USDC_ARBITRUM,
   USDC_MAINNET,
   USDC_OPTIMISM,
@@ -41,7 +33,8 @@ import {
 import { ChainId, WRAPPED_NATIVE_CURRENCY } from '../../../util';
 import { log } from '../../../util/log';
 import { metric, MetricLoggerUnit } from '../../../util/metric';
-import { AlphaRouterConfig } from '../alpha-router';
+import { sanitizeETHV2Pools } from '../../../util/pool';
+import { V2GetCandidatePoolsParams } from './get-candidate-pools';
 
 export type PoolId = { id: string };
 export type CandidatePoolsBySelectionCriteria = {
@@ -57,18 +50,6 @@ export type CandidatePoolsBySelectionCriteria = {
     topByTVLUsingTokenInSecondHops: PoolId[];
     topByTVLUsingTokenOutSecondHops: PoolId[];
   };
-};
-
-export type QuickV2GetCandidatePoolsParams = {
-  tokenIn: Token;
-  tokenOut: Token;
-  routeType: TradeType;
-  routingConfig: AlphaRouterConfig;
-  subgraphProvider: IV2SubgraphProvider;
-  tokenProvider: ITokenProvider;
-  poolProvider: IV2PoolProvider;
-  blockedTokenListProvider?: ITokenListProvider;
-  chainId: ChainId;
 };
 
 const baseTokensByChain: { [chainId in ChainId]?: Token[] } = {
@@ -108,12 +89,12 @@ export async function getQuickV2CandidatePools({
   tokenOut,
   routeType,
   routingConfig,
-  subgraphProvider,
+  v2PoolsUnsanitized,
   tokenProvider,
   poolProvider,
   blockedTokenListProvider,
   chainId,
-}: QuickV2GetCandidatePoolsParams): Promise<{
+}: V2GetCandidatePoolsParams): Promise<{
   poolAccessor: V2PoolAccessor;
   candidatePools: CandidatePoolsBySelectionCriteria;
 }> {
@@ -132,9 +113,7 @@ export async function getQuickV2CandidatePools({
   const tokenOutAddress = tokenOut.address.toLowerCase();
 
   const beforeSubgraphPools = Date.now();
-  const allPoolsRaw = await subgraphProvider.getPools(tokenIn, tokenOut, {
-    blockNumber,
-  });
+  const allPoolsRaw = sanitizeETHV2Pools(v2PoolsUnsanitized);
   const allPools = _.map(allPoolsRaw, (pool) => {
     return {
       ...pool,

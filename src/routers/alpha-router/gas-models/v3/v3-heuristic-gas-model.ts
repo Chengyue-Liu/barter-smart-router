@@ -1,8 +1,8 @@
 import { BigNumber } from '@ethersproject/bignumber';
-import { Percent, Token, TradeType } from '@uniswap/sdk-core';
+import { Token } from '@uniswap/sdk-core';
 import { FeeAmount, Pool } from '@uniswap/v3-sdk';
 import _ from 'lodash';
-import { SwapOptions, WRAPPED_NATIVE_CURRENCY } from '../../../..';
+import { WRAPPED_NATIVE_CURRENCY } from '../../../..';
 import {
   ArbitrumGasData,
   IL2GasDataProvider,
@@ -12,10 +12,6 @@ import { IV3PoolProvider } from '../../../../providers/uniswap/v3/pool-provider'
 import { ChainId } from '../../../../util';
 import { CurrencyAmount } from '../../../../util/amounts';
 import { log } from '../../../../util/log';
-import {
-  buildSwapMethodParameters,
-  buildTrade,
-} from '../../../../util/methodParameters';
 import { V3RouteWithValidQuote } from '../../entities/route-with-valid-quote';
 import {
   IGasModel,
@@ -69,83 +65,83 @@ export class V3HeuristicGasModelFactory extends IV3GasModelFactory {
       poolProvider
     );
 
-    const calculateL1GasFees = async (
-      route: V3RouteWithValidQuote[]
-    ): Promise<{
-      gasUsedL1: BigNumber;
-      gasCostL1USD: CurrencyAmount;
-      gasCostL1QuoteToken: CurrencyAmount;
-    }> => {
-      const swapOptions: SwapOptions = {
-        recipient: '0x0000000000000000000000000000000000000001',
-        deadline: 100,
-        slippageTolerance: new Percent(5, 10_000),
-      };
-      let l1Used = BigNumber.from(0);
-      let l1FeeInWei = BigNumber.from(0);
-      if (chainId == ChainId.OPTIMISM || chainId == ChainId.OPTIMISTIC_KOVAN) {
-        [l1Used, l1FeeInWei] = this.calculateOptimismToL1SecurityFee(
-          route,
-          swapOptions,
-          l2GasData as OptimismGasData
-        );
-      } else if (
-        chainId == ChainId.ARBITRUM_ONE ||
-        chainId == ChainId.ARBITRUM_RINKEBY
-      ) {
-        [l1Used, l1FeeInWei] = this.calculateArbitrumToL1SecurityFee(
-          route,
-          swapOptions,
-          l2GasData as ArbitrumGasData
-        );
-      }
+    // const calculateL1GasFees = async (
+    //   route: V3RouteWithValidQuote[]
+    // ): Promise<{
+    //   gasUsedL1: BigNumber;
+    //   gasCostL1USD: CurrencyAmount;
+    //   gasCostL1QuoteToken: CurrencyAmount;
+    // }> => {
+    //   const swapOptions: SwapOptions = {
+    //     recipient: '0x0000000000000000000000000000000000000001',
+    //     deadline: 100,
+    //     slippageTolerance: new Percent(5, 10_000),
+    //   };
+    //   let l1Used = BigNumber.from(0);
+    //   let l1FeeInWei = BigNumber.from(0);
+    //   if (chainId == ChainId.OPTIMISM || chainId == ChainId.OPTIMISTIC_KOVAN) {
+    //     [l1Used, l1FeeInWei] = this.calculateOptimismToL1SecurityFee(
+    //       route,
+    //       swapOptions,
+    //       l2GasData as OptimismGasData
+    //     );
+    //   } else if (
+    //     chainId == ChainId.ARBITRUM_ONE ||
+    //     chainId == ChainId.ARBITRUM_RINKEBY
+    //   ) {
+    //     [l1Used, l1FeeInWei] = this.calculateArbitrumToL1SecurityFee(
+    //       route,
+    //       swapOptions,
+    //       l2GasData as ArbitrumGasData
+    //     );
+    //   }
 
-      // wrap fee to native currency
-      const nativeCurrency = WRAPPED_NATIVE_CURRENCY[chainId];
-      const costNativeCurrency = CurrencyAmount.fromRawAmount(
-        nativeCurrency,
-        l1FeeInWei.toString()
-      );
+    //   // wrap fee to native currency
+    //   const nativeCurrency = WRAPPED_NATIVE_CURRENCY[chainId];
+    //   const costNativeCurrency = CurrencyAmount.fromRawAmount(
+    //     nativeCurrency,
+    //     l1FeeInWei.toString()
+    //   );
 
-      // convert fee into usd
-      const nativeTokenPrice =
-        usdPool.token0.address == nativeCurrency.address
-          ? usdPool.token0Price
-          : usdPool.token1Price;
+    //   // convert fee into usd
+    //   const nativeTokenPrice =
+    //     usdPool.token0.address == nativeCurrency.address
+    //       ? usdPool.token0Price
+    //       : usdPool.token1Price;
 
-      const gasCostL1USD: CurrencyAmount =
-        nativeTokenPrice.quote(costNativeCurrency);
+    //   const gasCostL1USD: CurrencyAmount =
+    //     nativeTokenPrice.quote(costNativeCurrency);
 
-      let gasCostL1QuoteToken = costNativeCurrency;
-      // if the inputted token is not in the native currency, quote a native/quote token pool to get the gas cost in terms of the quote token
-      if (!token.equals(nativeCurrency)) {
-        const nativePool: Pool | null =
-          await this.getHighestLiquidityNativePool(
-            chainId,
-            token,
-            poolProvider
-          );
-        if (!nativePool) {
-          log.info(
-            'Could not find a pool to convert the cost into the quote token'
-          );
-          gasCostL1QuoteToken = CurrencyAmount.fromRawAmount(token, 0);
-        } else {
-          const nativeTokenPrice =
-            nativePool.token0.address == nativeCurrency.address
-              ? nativePool.token0Price
-              : nativePool.token1Price;
-          gasCostL1QuoteToken = nativeTokenPrice.quote(costNativeCurrency);
-        }
-      }
-      // gasUsedL1 is the gas units used calculated from the bytes of the calldata
-      // gasCostL1USD and gasCostL1QuoteToken is the cost of gas in each of those tokens
-      return {
-        gasUsedL1: l1Used,
-        gasCostL1USD,
-        gasCostL1QuoteToken,
-      };
-    };
+    //   let gasCostL1QuoteToken = costNativeCurrency;
+    //   // if the inputted token is not in the native currency, quote a native/quote token pool to get the gas cost in terms of the quote token
+    //   if (!token.equals(nativeCurrency)) {
+    //     const nativePool: Pool | null =
+    //       await this.getHighestLiquidityNativePool(
+    //         chainId,
+    //         token,
+    //         poolProvider
+    //       );
+    //     if (!nativePool) {
+    //       log.info(
+    //         'Could not find a pool to convert the cost into the quote token'
+    //       );
+    //       gasCostL1QuoteToken = CurrencyAmount.fromRawAmount(token, 0);
+    //     } else {
+    //       const nativeTokenPrice =
+    //         nativePool.token0.address == nativeCurrency.address
+    //           ? nativePool.token0Price
+    //           : nativePool.token1Price;
+    //       gasCostL1QuoteToken = nativeTokenPrice.quote(costNativeCurrency);
+    //     }
+    //   }
+    //   // gasUsedL1 is the gas units used calculated from the bytes of the calldata
+    //   // gasCostL1USD and gasCostL1QuoteToken is the cost of gas in each of those tokens
+    //   return {
+    //     gasUsedL1: l1Used,
+    //     gasCostL1USD,
+    //     gasCostL1QuoteToken,
+    //   };
+    // };
 
     // If our quote token is WETH, we don't need to convert our gas use to be in terms
     // of the quote token in order to produce a gas adjusted amount.
@@ -184,7 +180,7 @@ export class V3HeuristicGasModelFactory extends IV3GasModelFactory {
 
       return {
         estimateGasCost,
-        calculateL1GasFees,
+        // calculateL1GasFees,
       };
     }
 
@@ -284,7 +280,7 @@ export class V3HeuristicGasModelFactory extends IV3GasModelFactory {
 
     return {
       estimateGasCost: estimateGasCost.bind(this),
-      calculateL1GasFees,
+      // calculateL1GasFees,
     };
   }
 
@@ -431,68 +427,68 @@ export class V3HeuristicGasModelFactory extends IV3GasModelFactory {
     return maxPool;
   }
 
-  /**
-   * To avoid having a call to optimism's L1 security fee contract for every route and amount combination,
-   * we replicate the gas cost accounting here.
-   */
-  private calculateOptimismToL1SecurityFee(
-    routes: V3RouteWithValidQuote[],
-    swapConfig: SwapOptions,
-    gasData: OptimismGasData
-  ): [BigNumber, BigNumber] {
-    const { l1BaseFee, scalar, decimals, overhead } = gasData;
+  // /**
+  //  * To avoid having a call to optimism's L1 security fee contract for every route and amount combination,
+  //  * we replicate the gas cost accounting here.
+  //  */
+  // private calculateOptimismToL1SecurityFee(
+  //   routes: V3RouteWithValidQuote[],
+  //   swapConfig: SwapOptions,
+  //   gasData: OptimismGasData
+  // ): [BigNumber, BigNumber] {
+  //   const { l1BaseFee, scalar, decimals, overhead } = gasData;
 
-    const route: V3RouteWithValidQuote = routes[0]!;
-    const inputToken =
-      route.tradeType == TradeType.EXACT_INPUT
-        ? route.amount.currency
-        : route.quote.currency;
-    const outputToken =
-      route.tradeType == TradeType.EXACT_INPUT
-        ? route.quote.currency
-        : route.amount.currency;
+  //   const route: V3RouteWithValidQuote = routes[0]!;
+  //   const inputToken =
+  //     route.tradeType == TradeType.EXACT_INPUT
+  //       ? route.amount.currency
+  //       : route.quote.currency;
+  //   const outputToken =
+  //     route.tradeType == TradeType.EXACT_INPUT
+  //       ? route.quote.currency
+  //       : route.amount.currency;
 
-    // build trade for swap calldata
-    const trade = buildTrade(inputToken, outputToken, route.tradeType, routes);
-    const data = buildSwapMethodParameters(trade, swapConfig).calldata;
-    const l1GasUsed = this.getL2ToL1GasUsed(data, overhead);
-    // l1BaseFee is L1 Gas Price on etherscan
-    const l1Fee = l1GasUsed.mul(l1BaseFee);
-    const unscaled = l1Fee.mul(scalar);
-    // scaled = unscaled / (10 ** decimals)
-    const scaledConversion = BigNumber.from(10).pow(decimals);
-    const scaled = unscaled.div(scaledConversion);
-    return [l1GasUsed, scaled];
-  }
+  //   // build trade for swap calldata
+  //   const trade = buildTrade(inputToken, outputToken, route.tradeType, routes);
+  //   const data = buildSwapMethodParameters(trade, swapConfig).calldata;
+  //   const l1GasUsed = this.getL2ToL1GasUsed(data, overhead);
+  //   // l1BaseFee is L1 Gas Price on etherscan
+  //   const l1Fee = l1GasUsed.mul(l1BaseFee);
+  //   const unscaled = l1Fee.mul(scalar);
+  //   // scaled = unscaled / (10 ** decimals)
+  //   const scaledConversion = BigNumber.from(10).pow(decimals);
+  //   const scaled = unscaled.div(scaledConversion);
+  //   return [l1GasUsed, scaled];
+  // }
 
-  private calculateArbitrumToL1SecurityFee(
-    routes: V3RouteWithValidQuote[],
-    swapConfig: SwapOptions,
-    gasData: ArbitrumGasData
-  ): [BigNumber, BigNumber] {
-    const { perL2TxFee, perL1CalldataFee } = gasData;
+  // private calculateArbitrumToL1SecurityFee(
+  //   routes: V3RouteWithValidQuote[],
+  //   swapConfig: SwapOptions,
+  //   gasData: ArbitrumGasData
+  // ): [BigNumber, BigNumber] {
+  //   const { perL2TxFee, perL1CalldataFee } = gasData;
 
-    const route: V3RouteWithValidQuote = routes[0]!;
+  //   const route: V3RouteWithValidQuote = routes[0]!;
 
-    const inputToken =
-      route.tradeType == TradeType.EXACT_INPUT
-        ? route.amount.currency
-        : route.quote.currency;
-    const outputToken =
-      route.tradeType == TradeType.EXACT_INPUT
-        ? route.quote.currency
-        : route.amount.currency;
+  //   const inputToken =
+  //     route.tradeType == TradeType.EXACT_INPUT
+  //       ? route.amount.currency
+  //       : route.quote.currency;
+  //   const outputToken =
+  //     route.tradeType == TradeType.EXACT_INPUT
+  //       ? route.quote.currency
+  //       : route.amount.currency;
 
-    // build trade for swap calldata
-    const trade = buildTrade(inputToken, outputToken, route.tradeType, routes);
-    const data = buildSwapMethodParameters(trade, swapConfig).calldata;
-    // calculates gas amounts based on bytes of calldata, use 0 as overhead.
-    const l1GasUsed = this.getL2ToL1GasUsed(data, BigNumber.from(0));
-    // multiply by the fee per calldata and add the flat l2 fee
-    let l1Fee = l1GasUsed.mul(perL1CalldataFee);
-    l1Fee = l1Fee.add(perL2TxFee);
-    return [l1GasUsed, l1Fee];
-  }
+  //   // build trade for swap calldata
+  //   const trade = buildTrade(inputToken, outputToken, route.tradeType, routes);
+  //   const data = buildSwapMethodParameters(trade, swapConfig).calldata;
+  //   // calculates gas amounts based on bytes of calldata, use 0 as overhead.
+  //   const l1GasUsed = this.getL2ToL1GasUsed(data, BigNumber.from(0));
+  //   // multiply by the fee per calldata and add the flat l2 fee
+  //   let l1Fee = l1GasUsed.mul(perL1CalldataFee);
+  //   l1Fee = l1Fee.add(perL2TxFee);
+  //   return [l1GasUsed, l1Fee];
+  // }
 
   // based on the code from the optimism OVM_GasPriceOracle contract
   private getL2ToL1GasUsed(data: string, overhead: BigNumber): BigNumber {

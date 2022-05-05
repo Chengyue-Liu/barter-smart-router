@@ -8,7 +8,7 @@ import {
   V2PoolAccessor,
 } from '../../../providers/interfaces/IPoolProvider';
 import {
-  IV2SubgraphProvider,
+  RawETHV2SubgraphPool,
   V2SubgraphPool,
 } from '../../../providers/interfaces/ISubgraphProvider';
 import {
@@ -17,6 +17,7 @@ import {
   DAI_MAINNET,
   DAI_OPTIMISM,
   DAI_OPTIMISTIC_KOVAN,
+  DAI_POLYGON,
   DAI_POLYGON_MUMBAI,
   DAI_RINKEBY_1,
   DAI_RINKEBY_2,
@@ -44,13 +45,14 @@ import {
   V3PoolAccessor,
 } from '../../../providers/uniswap/v3/pool-provider';
 import {
-  IV3SubgraphProvider,
+  RawV3SubgraphPool,
   V3SubgraphPool,
 } from '../../../providers/uniswap/v3/subgraph-provider';
 import { ChainId, WRAPPED_NATIVE_CURRENCY } from '../../../util';
 import { parseFeeAmount, unparseFeeAmount } from '../../../util/amounts';
 import { log } from '../../../util/log';
 import { metric, MetricLoggerUnit } from '../../../util/metric';
+import { sanitizeETHV2Pools, sanitizeV3Pools } from '../../../util/pool';
 import { AlphaRouterConfig } from '../alpha-router';
 
 export type PoolId = { id: string };
@@ -74,7 +76,7 @@ export type V3GetCandidatePoolsParams = {
   tokenOut: Token;
   routeType: TradeType;
   routingConfig: AlphaRouterConfig;
-  subgraphProvider: IV3SubgraphProvider;
+  allPoolsUnsanitized: RawV3SubgraphPool[];
   tokenProvider: ITokenProvider;
   poolProvider: IV3PoolProvider;
   blockedTokenListProvider?: ITokenListProvider;
@@ -86,31 +88,7 @@ export type V2GetCandidatePoolsParams = {
   tokenOut: Token;
   routeType: TradeType;
   routingConfig: AlphaRouterConfig;
-  subgraphProvider: IV2SubgraphProvider;
-  tokenProvider: ITokenProvider;
-  poolProvider: IV2PoolProvider;
-  blockedTokenListProvider?: ITokenListProvider;
-  chainId: ChainId;
-};
-
-export type QuickV2GetCandidatePoolsParams = {
-  tokenIn: Token;
-  tokenOut: Token;
-  routeType: TradeType;
-  routingConfig: AlphaRouterConfig;
-  subgraphProvider: IV2SubgraphProvider;
-  tokenProvider: ITokenProvider;
-  poolProvider: IV2PoolProvider;
-  blockedTokenListProvider?: ITokenListProvider;
-  chainId: ChainId;
-};
-
-export type SushiV2GetCandidatePoolsParams = {
-  tokenIn: Token;
-  tokenOut: Token;
-  routeType: TradeType;
-  routingConfig: AlphaRouterConfig;
-  subgraphProvider: IV2SubgraphProvider;
+  v2PoolsUnsanitized: RawETHV2SubgraphPool[];
   tokenProvider: ITokenProvider;
   poolProvider: IV2PoolProvider;
   blockedTokenListProvider?: ITokenListProvider;
@@ -146,7 +124,7 @@ const baseTokensByChain: { [chainId in ChainId]?: Token[] } = {
     USDT_ARBITRUM,
   ],
   [ChainId.ARBITRUM_RINKEBY]: [DAI_ARBITRUM_RINKEBY, USDT_ARBITRUM_RINKEBY],
-  [ChainId.POLYGON]: [USDC_POLYGON, WMATIC_POLYGON],
+  [ChainId.POLYGON]: [USDC_POLYGON, WMATIC_POLYGON, DAI_POLYGON],
   [ChainId.POLYGON_MUMBAI]: [DAI_POLYGON_MUMBAI, WMATIC_POLYGON_MUMBAI],
 };
 
@@ -155,7 +133,7 @@ export async function getV3CandidatePools({
   tokenOut,
   routeType,
   routingConfig,
-  subgraphProvider,
+  allPoolsUnsanitized,
   tokenProvider,
   poolProvider,
   blockedTokenListProvider,
@@ -180,9 +158,10 @@ export async function getV3CandidatePools({
 
   const beforeSubgraphPools = Date.now();
 
-  const allPoolsRaw = await subgraphProvider.getPools(tokenIn, tokenOut, {
-    blockNumber,
-  });
+  const allPoolsRaw = sanitizeV3Pools(allPoolsUnsanitized);
+  // const allPoolsRaw = await subgraphProvider.getPools(tokenIn, tokenOut, {
+  //   blockNumber,
+  // });
 
   log.info(
     { samplePools: allPoolsRaw.slice(0, 3) },
@@ -570,7 +549,7 @@ export async function getV2CandidatePools({
   tokenOut,
   routeType,
   routingConfig,
-  subgraphProvider,
+  v2PoolsUnsanitized,
   tokenProvider,
   poolProvider,
   blockedTokenListProvider,
@@ -594,9 +573,8 @@ export async function getV2CandidatePools({
   const tokenOutAddress = tokenOut.address.toLowerCase();
 
   const beforeSubgraphPools = Date.now();
-  const allPoolsRaw = await subgraphProvider.getPools(tokenIn, tokenOut, {
-    blockNumber,
-  });
+
+  const allPoolsRaw = sanitizeETHV2Pools(v2PoolsUnsanitized);
   const allPools = _.map(allPoolsRaw, (pool) => {
     return {
       ...pool,
