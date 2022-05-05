@@ -94,7 +94,7 @@ import {
 import { log } from '../../util/log';
 import { metric, MetricLoggerUnit } from '../../util/metric';
 import {
-  getETHPoolsByHttp,
+  getETHPoolsFromServer,
   getETHV2PoolsFromOneProtocol,
   getETHV3PoolsFromOneProtocol,
 } from '../../util/pool';
@@ -816,7 +816,7 @@ export class AlphaRouter
 
     const protocolsSet = new Set(protocols ?? []);
 
-    const allPoolsUnsanitizedJsonStr = await getETHPoolsByHttp(
+    const allPoolsUnsanitizedJsonStr = await getETHPoolsFromServer(
       protocolsSet,
       this.chainId
     );

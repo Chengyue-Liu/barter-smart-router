@@ -1,3 +1,4 @@
+import { BigNumber } from '@ethersproject/bignumber';
 import { Token } from '@uniswap/sdk-core';
 import { FACTORY_ADDRESS } from '@uniswap/v3-sdk';
 import { ChainId } from './chains';
@@ -29,6 +30,16 @@ export const ROUTER_ADDRESSES: {
   QUICKSWAP: '0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff',
   SUSHISWAP: '0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506',
   PANCAKESWAP: '0x10ED43C718714eb63d5aA57B78B54704E256024E',
+};
+
+export const ROUTER_INDEX: {
+  [protocol in BarterProtocol]: BigNumber;
+} = {
+  V2: BigNumber.from(0),
+  V3: BigNumber.from(0),
+  QUICKSWAP: BigNumber.from(2),
+  SUSHISWAP: BigNumber.from(1),
+  PANCAKESWAP: BigNumber.from(3),
 };
 export const WETH9: {
   [chainId in Exclude<

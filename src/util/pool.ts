@@ -95,11 +95,12 @@ export function sanitizeETHV2Pools(
   return poolsSanitized;
 }
 
-export async function getETHPoolsByHttp(
+export async function getETHPoolsFromServer(
   protocolSet: Set<BarterProtocol>,
   chainId: number
 ): Promise<string> {
   const requestUrl = assemblePoolRequest(protocolSet, chainId);
+  console.log(requestUrl);
   try {
     const allPoolsUnsanitizedJsonStr = await axios.get(requestUrl);
     return JSON.stringify(allPoolsUnsanitizedJsonStr.data);

@@ -8,9 +8,10 @@ import {
 } from '../providers/quickswap/util/token-provider';
 import { SwapRoute } from '../routers';
 import { getBestRoute } from '../routers/barter-router';
-import { routeAmountToString, ROUTER_ADDRESSES } from '../util';
+import { routeAmountToString, ROUTER_INDEX } from '../util';
 import { TradeType } from '../util/constants';
 import { BarterProtocol } from '../util/protocol';
+import abi from './routerabi.json';
 
 const chainId = 137;
 // const rpcUrl = 'https://bsc-dataseed1.defibit.io/';
@@ -23,16 +24,14 @@ const wallet = new ethers.Wallet(
 );
 const signer = wallet.connect(provider);
 const routerContract = new ethers.Contract(
-  '0x42c75CF9fa49E882324ebf3abFc56b2842b2812F',
-  [
-    'function multiSwap(uint256[] amountInArr, uint256[] amountOuntMinArr, bytes[] pathArr,address[] routerArr, address to, uint256 deadline, address froms, address tos)',
-  ],
+  '0x3044BED7679b031CCbefEC054FdA9aD350D372B4',
+  abi,
   signer
 );
 const slippage = 3; // thousandth
 const protocols = [
-  BarterProtocol.UNI_V2,
-  BarterProtocol.UNI_V3,
+  // BarterProtocol.UNI_V2,
+  // BarterProtocol.UNI_V3,
   BarterProtocol.QUICKSWAP,
   BarterProtocol.SUSHISWAP,
   // BarterProtocol.PANCAKESWAP,
@@ -50,7 +49,7 @@ async function main() {
     chainId,
     provider,
     protocols,
-    '80000000',
+    '1',
     tokenIn.address,
     tokenIn.decimals,
     tokenOut.address,
@@ -73,24 +72,32 @@ async function main() {
   }
   console.log('total get: ', sum);
   console.log('time: ', Date.now() - start);
-  // console.log(await doSwap(swapRoute));
+  console.log(await doSwap(swapRoute));
 }
 
 async function doSwap(swapRoute: SwapRoute): Promise<TransactionReceipt> {
-  const [amountInArr, amountOutMinArr, pathArr, routerArr] =
+  const [amountInArr, amountOutMinArr, pathArr, routerIndexArr] =
     assembleSwapRequest(swapRoute);
-  console.log(pathArr);
-  const swapTx = await routerContract.multiSwap(
-    amountInArr,
-    amountOutMinArr,
-    pathArr,
-    routerArr,
-    wallet.address,
-    ethers.constants.MaxUint256,
-    tokenIn.address,
-    tokenOut.address,
-    { gasLimit: 3500000, gasPrice: 70057219557 }
-  );
+  const params = {
+    amountInArr: amountInArr,
+    amountOutMinArr: amountOutMinArr,
+    pathArr: pathArr,
+    // routerArr,
+    to: wallet.address,
+    deadLine: ethers.constants.MaxUint256,
+    inputAddre: tokenIn.address,
+    outAddre: tokenOut.address,
+    routerIndex: routerIndexArr,
+  };
+  console.log(params);
+  // const swapTx = await routerContract.setFeeTo(wallet.address, {
+  //   gasLimit: 3500000,
+  //   gasPrice: 70057219557,
+  // });
+  const swapTx = await routerContract.multiSwap(params, {
+    gasLimit: 3500000,
+    gasPrice: 70057219557,
+  });
 
   return swapTx.wait();
 }
@@ -103,7 +110,7 @@ export function assembleSwapRequest(swapRoute: SwapRoute) {
   let amountInArr: BigNumber[] = [];
   let amountOutMinArr: BigNumber[] = [];
   let pathArr: string[] = [];
-  let routerArray: string[] = [];
+  let routerIndexArray: BigNumber[] = [];
 
   for (let route of swapRoute.route) {
     amountInArr.push(
@@ -119,7 +126,7 @@ export function assembleSwapRequest(swapRoute: SwapRoute) {
       let path: string[] = [];
       route.tokenPath.forEach((token) => path.push(token.address));
       pathArr.push(abiCoder.encode(['address[]'], [path]));
-      routerArray.push(ROUTER_ADDRESSES[route.platform]);
+      routerIndexArray.push(ROUTER_INDEX[route.platform]);
     } else {
       let typeArr: string[] = [];
       let valueArr: any[] = [];
@@ -142,14 +149,14 @@ export function assembleSwapRequest(swapRoute: SwapRoute) {
           ]);
         }
       }
-      routerArray.push(ROUTER_ADDRESSES[route.platform]);
+      routerIndexArray.push(ROUTER_INDEX[route.platform]);
       console.log('type', typeArr);
       console.log('value', valueArr);
 
       pathArr.push(ethers.utils.solidityPack(typeArr, valueArr));
     }
   }
-  return [amountInArr, amountOutMinArr, pathArr, routerArray];
+  return [amountInArr, amountOutMinArr, pathArr, routerIndexArray];
 }
 
 main().catch((error) => {
