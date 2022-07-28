@@ -1,3 +1,5 @@
+# Barter Smart Router
+finding the best cross-chain swap route.
 
 # Barter Smart Auto Router Usage
 ## Function Call
